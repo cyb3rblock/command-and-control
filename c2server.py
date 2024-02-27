@@ -128,6 +128,10 @@ def target_conn(target_id, a, num):
     while True:
         try:
             msg = input('Message to send to client : ')
+            if len(msg) == 0:
+                continue
+            elif msg == 'help':
+                pass
             conn_out(target_id, msg)
             if msg == "exit":
                 print("closing the connection")
@@ -136,8 +140,6 @@ def target_conn(target_id, a, num):
                 break
             elif msg == 'background':
                 break
-            elif msg == 'help':
-                pass
             elif msg == 'persist':
                 payload = input("Enter the name of payload with extension to enter persistance")
                 if a[num][6] == 1:
