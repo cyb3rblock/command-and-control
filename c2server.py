@@ -9,7 +9,7 @@ import shutil
 import subprocess
 from Cryptodome.Cipher import AES
 from Cryptodome.Random import get_random_bytes
-from Cryptodome.Util.Padding import pad, unpad
+from Cryptodome.Util.Padding import pad
 import base64
 
 def help():
