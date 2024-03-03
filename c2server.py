@@ -13,7 +13,7 @@ from Cryptodome.Util.Padding import pad
 import base64
 
 def help():
-    print("MENU COMMANDS \n ---------------------------------------\n listener -g : Generate a new listener\n winclient.py - Generate a Windows compatible client\n linclient.py - Generate a Linux compatible payload\n execlient - Generate an executable payload for Windows\n pshell_cradle : Commands to send encrypted payload to Windows clients\n sessions -l : List sessions\n session -i <session number> : Enter the required session\n kill <session number> : Kill an active session\n exit : Exit the code \n")
+    print("MENU COMMANDS \n ---------------------------------------\n listener -g : Generate a new listener\n winclient.py - Generate a Windows compatible client\n linclient.py - Generate a Linux compatible payload\n execlient - Generate an executable payload for Windows\n pshell_cradle : Commands to send encrypted payload to Windows clients\n shell : Enter local shell\n sessions -l : List sessions\n session -i <session number> : Enter the required session\n kill <session number> : Kill an active session\n exit : Exit the code \n")
     print("SESSION COMMANDS \n ---------------------------------------\n background : Backgrounds the current session\n exit : Terminated the current session\n")
 def kill_sig(conn,msg):
     msg = str(msg)
